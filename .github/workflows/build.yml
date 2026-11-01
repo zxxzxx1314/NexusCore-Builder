@@ -13,6 +13,15 @@ jobs:
         token: ${{ secrets.PRIVATE_REPO_TOKEN }}
         path: NexusCore
 
+    - name: Ensure Gradle Wrapper
+      run: |
+        cd NexusCore
+        if [ ! -f "gradle/wrapper/gradle-wrapper.jar" ]; then
+          curl -sL "https://services.gradle.org/distributions/gradle-8.7-bin.zip" -o /tmp/gradle.zip
+          unzip -p /tmp/gradle.zip "gradle-8.7/lib/plugins/gradle-wrapper-main-8.7.jar" > gradle/wrapper/gradle-wrapper.jar || unzip -p /tmp/gradle.zip "gradle-8.7/lib/gradle-wrapper.jar" > gradle/wrapper/gradle-wrapper.jar
+        fi
+        chmod +x gradlew || true
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
@@ -22,8 +31,11 @@ jobs:
     - name: Build Android APK
       run: |
         cd NexusCore
-        chmod +x gradlew
-        ./gradlew assembleDebug
+        if [ ! -f "gradlew" ]; then
+          curl -sL "https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradlew" -o gradlew
+          chmod +x gradlew
+        fi
+        ./gradlew assembleDebug --no-daemon
         
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
