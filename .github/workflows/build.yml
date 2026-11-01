@@ -1,0 +1,32 @@
+name: Build NexusCore
+on:
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Private Code
+      uses: actions/checkout@v4
+      with:
+        repository: zxxzxx1314/NexusCore-Private
+        token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+        path: NexusCore
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Build Android APK
+      run: |
+        cd NexusCore
+        chmod +x gradlew
+        ./gradlew assembleDebug
+        
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: NexusCore-APK
+        path: NexusCore/app/build/outputs/apk/debug/*.apk
